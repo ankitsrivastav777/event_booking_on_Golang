@@ -1,0 +1,9 @@
+PUT http://localhost:8080/events/2
+Content-Type: application/json
+
+{
+  "name": "GoLang Conference Updated",
+  "date": "2023-10-16T10:00:00Z",
+  "location": "San Francisco, CA",
+  "description": "An updated description for the GoLang conference."
+}
