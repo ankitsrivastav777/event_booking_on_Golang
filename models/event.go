@@ -2,6 +2,7 @@ package models
 
 import (
 	"booking/rest-api/db"
+	"fmt"
 	"time"
 )
 
@@ -11,12 +12,10 @@ type Event struct {
 	Description string    `bind:"required"`
 	Location    string    `bind:"required"`
 	DateTime    time.Time `bind:"required"`
-	UserID      int
+	UserID      int64
 }
 
-var events = []Event{}
-
-func (e Event) Save() error {
+func (e *Event) Save() error {
 
 	query := `INSERT INTO events (name, description, location, datetime, user_id) VALUES (?, ?, ?, ?, ?)`
 	stmt, err := db.DB.Prepare(query)
@@ -57,26 +56,30 @@ func GetAllEvents() ([]Event, error) {
 }
 
 func GetEventByID(id int64) (*Event, error) {
-	query := `SELECT * FROM events WHERE id = ?`
+	query := "SELECT * FROM events WHERE id = ?"
 	row := db.DB.QueryRow(query, id)
 	var e Event
 	err := row.Scan(&e.ID, &e.Name, &e.Description, &e.Location, &e.DateTime, &e.UserID)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return &e, nil
 }
 
-func (e *Event) Update() error {
-	query := `UPDATE events SET name = ?, description = ?, location = ?, datetime = ?, user_id = ? WHERE id = ?`
+func (e Event) Update() error {
+	query := `UPDATE events SET name = ?, description = ?, location = ?, datetime = ? WHERE id = ?`
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.UserID, e.ID)
+	fmt.Println("Updating event:", e.UserID)
+	_, err = stmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.ID)
 	return err
 }
+
 func (event Event) Delete() error {
 	query := `DELETE FROM events WHERE id = ?`
 	stmt, err := db.DB.Prepare(query)
@@ -87,4 +90,27 @@ func (event Event) Delete() error {
 	_, err = stmt.Exec(event.ID)
 	return err
 
+}
+
+func (e *Event) Register(userId int64) error {
+	query := `INSERT INTO registrations (event_id, user_id) VALUES (?, ?)`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(e.ID, userId)
+
+	return err
+}
+
+func (e Event) CancelRegistration(userId int64) error {
+	query := `DELETE FROM registrations WHERE event_id = ? AND user_id = ?`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(e.ID, userId)
+	return err
 }

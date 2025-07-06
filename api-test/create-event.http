@@ -1,5 +1,6 @@
 POST http://localhost:8080/events
 Content-Type: application/json
+authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InR0dGVzdDIyMkAxMjM0NTY3IiwiZXhwIjoxNzUxNzY3MTQyLCJ1c2VySWQiOjEwfQ.ZJaTcoLLN92SZhGAsMe4P4U0-W01zUptVa5JbRYXiPo
 
 {
   "name": "GoLang Conference",

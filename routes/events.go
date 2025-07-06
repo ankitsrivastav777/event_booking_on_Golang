@@ -2,6 +2,7 @@ package routes
 
 import (
 	"booking/rest-api/models"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -35,6 +36,7 @@ func getEvent(context *gin.Context) {
 }
 
 func createEvent(context *gin.Context) {
+
 	// This function will handle the creation of a new event
 	var event models.Event
 
@@ -43,9 +45,10 @@ func createEvent(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	event.ID = 1        // Assign a new ID to the event (in a real application, this would be handled by the database)
-	event.UserID = 1    // Assign a user ID (in a real application, this would	 be derived from the authenticated user)
-	err := event.Save() // Save the event using the Save method defined in the models package
+
+	userId := context.GetInt64("userId") // Get the user ID from the context, set by the authentication middleware
+	event.UserID = int64(userId)         // Set the user ID for the event
+	err := event.Save()                  // Save the event using the Save method defined in the models package
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -62,13 +65,21 @@ func updateEvent(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
 		return
 	}
-	_, err = models.GetEventByID(eventId) // Retrieve the event by ID using the GetEventByID function defined in the models package
+	userId := context.GetInt64("userId")
+	fmt.Println("User ID from context:", userId) // Debugging line to check the user ID from the context
+	event, err := models.GetEventByID(eventId)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
 	}
+	if event.UserID != userId {
+		// Check if the user ID from the context matches the event's user ID
+		context.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this event"})
+		return
+	}
+
 	var updateEvent models.Event
-	err = context.BindJSON(&updateEvent) // Bind the JSON request body to the updateEvent struct
+	err = context.ShouldBindJSON(&updateEvent) // Bind the JSON request body to the updateEvent struct
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -92,11 +103,18 @@ func deleteEvent(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
 		return
 	}
+	userId := context.GetInt64("userId")
 	event, err := models.GetEventByID(eventId) // Retrieve the event by ID using the GetEventByID function defined in the models package
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
 	}
+	if event.UserID != userId {
+		// Check if the user ID from the context matches the event's user ID
+		context.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this event"})
+		return
+	}
+
 	err = event.Delete()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
