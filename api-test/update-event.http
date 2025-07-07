@@ -1,0 +1,10 @@
+PUT http://localhost:8080/events/25
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InR0dGVzdDIyMkAxMjM0NTYiLCJleHAiOjE3NTE3NjIyODQsInVzZXJJZCI6OX0.bMsyqINjWU_4jRQCWZuihixdhS82tUw6smb3y7L2ews
+
+{
+  "name": "GoLang Conference Updated",
+  "date": "2023-10-16T10:00:00Z",
+  "location": "San Francisco, CA",
+  "description": "An updated description for the GoLang conference."
+}
